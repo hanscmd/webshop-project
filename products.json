@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Premium Laptop",
+    "price": 1299.99,
+    "category": "electronics",
+    "description": "High-performance laptop for professionals",
+    "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500"
+  },
+  {
+    "id": 2,
+    "name": "Wireless Headphones",
+    "price": 199.99,
+    "category": "audio",
+    "description": "Noise-cancelling wireless headphones",
+    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"
+  },
+  {
+    "id": 3,
+    "name": "Smart Watch",
+    "price": 299.99,
+    "category": "wearables",
+    "description": "Fitness tracker and smartwatch",
+    "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"
+  },
+  {
+    "id": 4,
+    "name": "4K Monitor",
+    "price": 449.99,
+    "category": "electronics",
+    "description": "27-inch 4K UHD monitor",
+    "image": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500"
+  },
+  {
+    "id": 5,
+    "name": "Bluetooth Speaker",
+    "price": 89.99,
+    "category": "audio",
+    "description": "Portable waterproof speaker",
+    "image": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500"
+  }
+]
