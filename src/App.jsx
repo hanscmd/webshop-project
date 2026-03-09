@@ -6,27 +6,36 @@ import Register from './pages/Register'
 import Contact from './pages/Contact'
 import AdminDashboard from './pages/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
-
+import Maintenance from './pages/Maintenance' // nova stranica
 
 function App() {
+  const isMaintenance = import.meta.env.VITE_MAINTENANCE === "true"
+
   return (
     <Router basename="/webshop-project">
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        {isMaintenance ? (
+          // Ako je maintenance uključen, prikazuje se samo ova stranica
+          <Maintenance />
+        ) : (
+          <>
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </>
+        )}
       </div>
     </Router>
   )
