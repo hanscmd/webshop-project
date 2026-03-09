@@ -1,8 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-equiv="refresh" content="0; url=/webshop-project/" />
+    <meta charset="utf-8" />
+    <script type="text/javascript">
+      // Uhvati trenutnu putanju (npr. /contact, /login...)
+      var redirectUrl = window.location.pathname;
+
+      // Ako hostuješ u podfolderu (npr. /webshop-project), dodaj ga ispred
+      var base = "/webshop-project";
+
+      // Preusmeri nazad na index.html sa originalnom putanjom
+      window.location.replace(base + "/index.html#" + redirectUrl.replace(base, ""));
+    </script>
   </head>
-  <body>
-  </body>
+  <body></body>
 </html>
