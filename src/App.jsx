@@ -6,16 +6,15 @@ import Register from './pages/Register'
 import Contact from './pages/Contact'
 import AdminDashboard from './pages/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
-import Maintenance from './pages/Maintenance' // nova stranica
+import Maintenance from './pages/Maintenance'
 
 function App() {
   const isMaintenance = import.meta.env.VITE_MAINTENANCE === "true"
 
   return (
-    <Router basename="/webshop-project">
+    <Router>
       <div className="min-h-screen bg-gray-50">
         {isMaintenance ? (
-          // Ako je maintenance uključen, prikazuje se samo ova stranica
           <Maintenance />
         ) : (
           <>
