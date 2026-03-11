@@ -11,8 +11,13 @@ import Maintenance from './pages/Maintenance'
 function App() {
   const isMaintenance = import.meta.env.VITE_MAINTENANCE === "true"
 
+  // automatski basename za GitHub Pages ili Vercel
+  const base = import.meta.env.PROD
+    ? (window.location.hostname.includes("github.io") ? "/webshop-project" : "/")
+    : "/"
+
   return (
-    <Router>
+    <Router basename={base}>
       <div className="min-h-screen bg-gray-50">
         {isMaintenance ? (
           <Maintenance />
