@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]  # workflow se pokreće samo kada pushuješ u main
 
 permissions:
   contents: read
@@ -20,13 +20,17 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24   # koristimo Node 24 da uklonimo warning
 
       - name: Install dependencies
         run: npm install
 
       - name: Build project
         run: npm run build
+        env:
+          # Ovde prosleđujemo Supabase varijable iz Actions secrets
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
