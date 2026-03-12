@@ -1,12 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+
 import Navbar from './components/Navbar'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Contact from './pages/Contact'
-import AdminDashboard from './pages/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import Maintenance from './pages/Maintenance'
+
+// lazy loading stranica
+const Home = lazy(() => import('./pages/Home'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const Contact = lazy(() => import('./pages/Contact'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 
 function App() {
   const isMaintenance = import.meta.env.VITE_MAINTENANCE === "true"
@@ -24,20 +28,29 @@ function App() {
         ) : (
           <>
             <Navbar />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center h-screen text-lg">
+                  Loading...
+                </div>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </Suspense>
           </>
         )}
       </div>
