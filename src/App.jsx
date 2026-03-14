@@ -5,12 +5,17 @@ import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import Maintenance from './pages/Maintenance'
 
-// lazy loading stranica
+// Postojeći lazy loading
 const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Contact = lazy(() => import('./pages/Contact'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+
+// NOVE RUTE (Support i Admin Chat)
+const UserChat = lazy(() => import("./pages/UserChat"))
+const AdminInbox = lazy(() => import("./pages/AdminInbox"))
+const AdminChat = lazy(() => import("./pages/AdminChat"))
 
 function App() {
   const isMaintenance = import.meta.env.VITE_MAINTENANCE === "true"
@@ -37,10 +42,16 @@ function App() {
               }
             >
               <Routes>
+                {/* --- POSTOJEĆE RUTE --- */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/contact" element={<Contact />} />
+                
+                {/* --- NOVE KORISNIČKE RUTE --- */}
+                <Route path="/support" element={<UserChat />} />
+
+                {/* --- ADMIN RUTE --- */}
                 <Route
                   path="/admin"
                   element={
@@ -49,6 +60,25 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                
+                {/* NOVE ADMIN RUTE */}
+                <Route
+                  path="/admin/inbox"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminInbox />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/chat/:id"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminChat />
+                    </ProtectedRoute>
+                  }
+                />
+
               </Routes>
             </Suspense>
           </>
