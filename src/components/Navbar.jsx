@@ -6,6 +6,9 @@ export default function Navbar() {
   const [user, setUser] = useState(null)
   const navigate = useNavigate()
 
+  // Provera da li je korisnik admin (prilagodi svom email-u)
+  const isAdmin = user?.email === 'admin@example.com'
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
@@ -31,34 +34,50 @@ export default function Navbar() {
             WebShop
           </Link>
           
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 items-center">
             <Link to="/" className="text-gray-600 hover:text-gray-900">
               Home
             </Link>
+            
+            {/* Link za obične korisnike - Support Chat */}
+            {user && !isAdmin && (
+              <Link to="/support" className="text-blue-600 font-medium hover:text-blue-800">
+                Support Chat
+              </Link>
+            )}
+
             <Link to="/contact" className="text-gray-600 hover:text-gray-900">
               Contact
             </Link>
-            {user?.email === 'admin@example.com' && (
-              <Link to="/admin" className="text-gray-600 hover:text-gray-900">
-                Admin
-              </Link>
+
+            {/* ADMIN SEKCIJA */}
+            {isAdmin && (
+              <div className="flex space-x-4 border-l pl-4 border-gray-200">
+                <Link to="/admin" className="text-red-600 hover:text-red-800 font-bold">
+                  Dashboard
+                </Link>
+                <Link to="/admin/inbox" className="text-red-600 hover:text-red-800 font-bold">
+                  Inbox
+                </Link>
+              </div>
             )}
+
             {user ? (
               <button
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-gray-900"
+                className="bg-gray-100 px-3 py-1 rounded hover:bg-gray-200 transition"
               >
                 Logout
               </button>
             ) : (
-              <>
+              <div className="flex space-x-2">
                 <Link to="/login" className="text-gray-600 hover:text-gray-900">
                   Login
                 </Link>
-                <Link to="/register" className="text-gray-600 hover:text-gray-900">
+                <Link to="/register" className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
                   Register
                 </Link>
-              </>
+              </div>
             )}
           </div>
         </div>
