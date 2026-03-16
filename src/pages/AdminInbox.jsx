@@ -15,12 +15,12 @@ export default function AdminInbox() {
     try {
       setLoading(true)
       
-      // Pokušavamo da povučemo podatke
+      // KLJUČNA IZMENA: Profiles umesto Users i eksplicitna veza preko !user_id
       const { data, error } = await supabase
         .from("conversations")
         .select(`
           id,
-          users (
+          profiles!user_id (
             first_name,
             last_name,
             email
@@ -28,16 +28,13 @@ export default function AdminInbox() {
         `)
 
       if (error) {
-        // Ako Supabase vrati grešku (npr. RLS polisa ili loš Join)
         console.error("Supabase Error:", error.message)
-        console.error("Detalji greške:", error.details)
         setErrorMessage(`Greška: ${error.message}`)
       } else {
         console.log("Uspešno povučeni podaci:", data)
         setConversations(data || [])
       }
     } catch (err) {
-      // Ako se desi neočekivana JS greška
       console.error("Unexpected Error:", err)
       setErrorMessage("Desila se neočekivana greška prilikom učitavanja.")
     } finally {
@@ -47,52 +44,51 @@ export default function AdminInbox() {
 
   return (
     <div className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8">Admin Inbox</h1>
+      <h1 className="text-3xl font-bold mb-8 italic">Admin Inbox</h1>
 
-      {/* Prikaz greške na ekranu ako postoji */}
       {errorMessage && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           <p>{errorMessage}</p>
-          <p className="text-sm italic">Pogledaj konzolu (F12) za više detalja.</p>
         </div>
       )}
 
       {loading ? (
         <p>Učitavanje konverzacija...</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-200">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto shadow-lg rounded-lg">
+          <table className="w-full border-collapse bg-white">
+            <thead className="bg-gray-800 text-white">
               <tr>
-                <th className="border p-3 text-left">User</th>
-                <th className="border p-3 text-left">Email</th>
-                <th className="border p-3 text-center">Chat</th>
+                <th className="p-3 text-left">User</th>
+                <th className="p-3 text-left">Email</th>
+                <th className="p-3 text-center">Chat</th>
               </tr>
             </thead>
             <tbody>
               {conversations.length > 0 ? (
                 conversations.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50">
-                    <td className="border p-3">
-                      {c.users?.first_name} {c.users?.last_name || "N/A"}
+                  <tr key={c.id} className="border-b hover:bg-gray-50 transition">
+                    <td className="p-3">
+                      {/* Izmena: c.profiles umesto c.users */}
+                      {c.profiles?.first_name} {c.profiles?.last_name || "New User"}
                     </td>
-                    <td className="border p-3">
-                      {c.users?.email || "N/A"}
+                    <td className="p-3 italic text-gray-600">
+                      {c.profiles?.email}
                     </td>
-                    <td className="border p-3 text-center">
+                    <td className="p-3 text-center">
                       <Link
                         to={`/admin/chat/${c.id}`}
-                        className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-blue-700 transition"
                       >
-                        Open
+                        Open Chat
                       </Link>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="border p-10 text-center text-gray-500">
-                    Nema pronađenih konverzacija.
+                  <td colSpan="3" className="p-10 text-center text-gray-500 italic">
+                    Nema pronađenih konverzacija. Proverite da li su korisnici otvorili Support stranicu.
                   </td>
                 </tr>
               )}

@@ -3,12 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase/client'
 
 export default function Register() {
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: ''
+  })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isRegistered, setIsRegistered] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -16,10 +19,17 @@ export default function Register() {
     setError('')
     setLoading(true)
 
-    // 1. Kreiraj nalog u Supabase Auth
+    // SLANJE PODATAKA U SUPABASE AUTH
     const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password
+      email: formData.email,
+      password: formData.password,
+      options: {
+        // Ovi podaci idu u raw_user_meta_data u bazi
+        data: {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+        }
+      }
     })
 
     if (signUpError) {
@@ -28,108 +38,92 @@ export default function Register() {
       return
     }
 
-    // 2. Uzmi auth.uid() novog korisnika
-    const userId = data.user?.id
-
-    // 3. Ubaci korisnika u tvoju users tabelu
-    if (userId) {
-      const { error: insertError } = await supabase
-        .from('users')
-        .insert([
-          {
-            id: userId,
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            role: 'user' // default role
-          }
-        ])
-
-      if (insertError) {
-        setError(insertError.message)
-        setLoading(false)
-        return
-      }
-    }
-
-    // 4. Preusmeri na login
-    navigate('/login')
+    // Više nema insert-a u "users" ili "profiles" ovde! 
+    // SQL Trigger u bazi će to uraditi automatski.
+    
     setLoading(false)
+    setIsRegistered(true)
+  }
+
+  if (isRegistered) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl text-center space-y-6">
+          <div className="text-6xl text-green-500">✉️</div>
+          <h2 className="text-2xl font-bold text-gray-800">Proverite email!</h2>
+          <p className="text-gray-600">
+            Poslali smo potvrdu na <strong>{formData.email}</strong>. 
+            Morate potvrditi email pre nego što se prijavite.
+          </p>
+          <button 
+            onClick={() => navigate('/login')}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition"
+          >
+            Idi na Login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create a new account
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+        <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-8">
+          Kreiraj Profil
         </h2>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">
               {error}
             </div>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">First Name</label>
-              <input
-                type="text"
-                required
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Last Name</label>
-              <input
-                type="text"
-                required
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Ime"
+              required
+              className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+            />
+            <input
+              type="text"
+              placeholder="Prezime"
+              required
+              className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+            />
           </div>
+
+          <input
+            type="email"
+            placeholder="Email adresa"
+            required
+            className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
+          />
+
+          <input
+            type="password"
+            placeholder="Lozinka"
+            required
+            className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+            onChange={(e) => setFormData({...formData, password: e.target.value})}
+          />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 transition shadow-md"
           >
-            {loading ? 'Creating account...' : 'Register'}
+            {loading ? 'Slanje...' : 'Registruj se'}
           </button>
 
-          <div className="text-center">
-            <Link to="/login" className="text-sm text-blue-600 hover:text-blue-500">
-              Already have an account? Sign in
-            </Link>
-          </div>
+          <p className="text-center text-gray-500 text-sm mt-4">
+            Već imaš nalog? <Link to="/login" className="text-blue-600 font-bold hover:underline">Prijavi se</Link>
+          </p>
         </form>
       </div>
     </div>
