@@ -9,7 +9,6 @@ import Maintenance from './pages/Maintenance'
 const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
-const Contact = lazy(() => import('./pages/Contact'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 
 // NOVE RUTE (Support i Admin Chat)
@@ -46,7 +45,6 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/contact" element={<Contact />} />
                 
                 {/* --- NOVE KORISNIČKE RUTE --- */}
                 <Route path="/support" element={<UserChat />} />

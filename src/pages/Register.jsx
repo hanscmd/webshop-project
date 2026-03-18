@@ -1,129 +1,229 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase/client'
 
 export default function Register() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: ''
-  })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [isRegistered, setIsRegistered] = useState(false)
   const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    name: '',
+    surname: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    // SLANJE PODATAKA U SUPABASE AUTH
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        // Ovi podaci idu u raw_user_meta_data u bazi
-        data: {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-        }
-      }
-    })
-
-    if (signUpError) {
-      setError(signUpError.message)
-      setLoading(false)
+    setError(null)
+    
+    // Validacija
+    if (formData.password !== formData.confirmPassword) {
+      setError('Lozinke se ne poklapaju')
       return
     }
 
-    // Više nema insert-a u "users" ili "profiles" ovde! 
-    // SQL Trigger u bazi će to uraditi automatski.
-    
-    setLoading(false)
-    setIsRegistered(true)
+    if (formData.password.length < 6) {
+      setError('Lozinka mora imati najmanje 6 karaktera')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      // Pošalji podatke na Vercel Edge Function
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          surname: formData.surname
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Greška pri registraciji')
+      }
+
+      if (data.success) {
+        setSuccess(true)
+        setTimeout(() => {
+          navigate('/login')
+        }, 3000)
+      }
+    } catch (err) {
+      console.error('Registration error:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  if (isRegistered) {
+  if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl text-center space-y-6">
-          <div className="text-6xl text-green-500">✉️</div>
-          <h2 className="text-2xl font-bold text-gray-800">Proverite email!</h2>
-          <p className="text-gray-600">
-            Poslali smo potvrdu na <strong>{formData.email}</strong>. 
-            Morate potvrditi email pre nego što se prijavite.
-          </p>
-          <button 
-            onClick={() => navigate('/login')}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition"
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 text-center">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+            <h2 className="text-2xl font-bold mb-2">Registracija uspešna!</h2>
+            <p className="mb-4">
+              Molimo proverite vaš email (<span className="font-bold">{formData.email}</span>) 
+              i potvrdite vaš nalog.
+            </p>
+            <p className="text-sm text-green-600">
+              Bićete preusmereni na stranicu za prijavu za nekoliko sekundi...
+            </p>
+          </div>
+          <Link 
+            to="/login" 
+            className="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
           >
-            Idi na Login
-          </button>
+            Idi na prijavu
+          </Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-        <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-8">
-          Kreiraj Profil
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Kreirajte nalog
+          </h2>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">
-              {error}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Ime
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="Petar"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-1">
+                  Prezime
+                </label>
+                <input
+                  id="surname"
+                  name="surname"
+                  type="text"
+                  required
+                  value={formData.surname}
+                  onChange={handleChange}
+                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="Petrović"
+                />
+              </div>
             </div>
-          )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Ime"
-              required
-              className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
-              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-            />
-            <input
-              type="text"
-              placeholder="Prezime"
-              required
-              className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
-              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-            />
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email adresa
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="petar@example.com"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Lozinka
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="••••••••"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Minimum 6 karaktera
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Potvrdite lozinku
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="••••••••"
+              />
+            </div>
           </div>
 
-          <input
-            type="email"
-            placeholder="Email adresa"
-            required
-            className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
-          />
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                loading 
+                  ? 'bg-blue-400 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+              }`}
+            >
+              {loading ? 'Kreiranje naloga...' : 'Registruj se'}
+            </button>
+          </div>
 
-          <input
-            type="password"
-            placeholder="Lozinka"
-            required
-            className="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
-            onChange={(e) => setFormData({...formData, password: e.target.value})}
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 transition shadow-md"
-          >
-            {loading ? 'Slanje...' : 'Registruj se'}
-          </button>
-
-          <p className="text-center text-gray-500 text-sm mt-4">
-            Već imaš nalog? <Link to="/login" className="text-blue-600 font-bold hover:underline">Prijavi se</Link>
-          </p>
+          <div className="text-center text-sm">
+            <span className="text-gray-600">Već imate nalog?</span>{' '}
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              Prijavite se
+            </Link>
+          </div>
         </form>
       </div>
     </div>

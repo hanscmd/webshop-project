@@ -46,9 +46,6 @@ export default function Navbar() {
               </Link>
             )}
 
-            <Link to="/contact" className="text-gray-600 hover:text-gray-900">
-              Contact
-            </Link>
 
             {/* ADMIN SEKCIJA */}
             {isAdmin && (
