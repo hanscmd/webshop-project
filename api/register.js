@@ -56,17 +56,7 @@ export default async function handler(req, res) {
       options: {
         data: {
           name,
-          surname,
-          full_name: `${name} ${surname}`,
-          role: 'user',
-          ip_address: clientIp,
-          ip_country: geo.country,
-          ip_city: geo.city,
-          ip_region: geo.region,
-          ip_latitude: geo.latitude,
-          ip_longitude: geo.longitude,
-          user_agent: req.headers['user-agent'] || null,
-          registered_at: new Date().toISOString()
+          surname
         }
       }
     })
