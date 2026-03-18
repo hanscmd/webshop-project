@@ -1,4 +1,4 @@
-import { supabase } from '../src/lib/supabase'
+import { supabase } from '../src/supabase/client'
 import { geolocation, ipAddress } from '@vercel/functions'
 
 export const config = {
