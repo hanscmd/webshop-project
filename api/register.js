@@ -1,9 +1,7 @@
-import { supabase } from '..src/supabase/client'
 import { geolocation, ipAddress } from '@vercel/functions'
 
 export const config = {
   runtime: 'edge',
-  regions: ['iad1'] // Opciono: specificiraj region
 }
 
 export default async function handler(request) {
@@ -19,23 +17,22 @@ export default async function handler(request) {
   }
 
   if (request.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        status: 405,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
 
   try {
-    // Dohvati IP i geolokaciju iz Vercel headers-a
+    // Dohvati IP i geolokaciju
     const clientIp = ipAddress(request) || 
                      request.headers.get('x-forwarded-for') || 
                      'unknown'
     
     const geo = geolocation(request)
-    
-    console.log('Registration from:', {
-      ip: clientIp,
-      country: geo.country,
-      city: geo.city,
-      region: geo.region
-    })
 
     // Parsiraj body
     const body = await request.json()
@@ -52,6 +49,26 @@ export default async function handler(request) {
       )
     }
 
+    // Dinamički import Supabase klijenta
+    const { createClient } = await import('@supabase/supabase-js')
+    
+    // Proveri environment varijable
+    const supabaseUrl = process.env.VITE_SUPABASE_URL
+    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Missing Supabase environment variables')
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
     // Registracija sa Supabase
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -63,11 +80,11 @@ export default async function handler(request) {
           full_name: `${name} ${surname}`,
           role: 'user',
           ip_address: clientIp,
-          ip_country: geo.country || null,
-          ip_city: geo.city || null,
-          ip_region: geo.region || null,
-          ip_latitude: geo.latitude || null,
-          ip_longitude: geo.longitude || null,
+          ip_country: geo?.country || null,
+          ip_city: geo?.city || null,
+          ip_region: geo?.region || null,
+          ip_latitude: geo?.latitude || null,
+          ip_longitude: geo?.longitude || null,
           user_agent: request.headers.get('user-agent') || null,
           registered_at: new Date().toISOString()
         }
@@ -85,11 +102,9 @@ export default async function handler(request) {
       )
     }
 
-    // Uspešna registracija
     return new Response(
       JSON.stringify({ 
         success: true,
-        user: data.user,
         message: 'Registracija uspešna. Proverite email za potvrdu.'
       }),
       { 
@@ -101,7 +116,7 @@ export default async function handler(request) {
   } catch (error) {
     console.error('Server error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error: ' + error.message }),
       { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }
