@@ -1,73 +1,53 @@
-import { geolocation, ipAddress } from '@vercel/functions'
+import { createClient } from '@supabase/supabase-js'
 
-export const config = {
-  runtime: 'edge',
-}
-
-export default async function handler(request) {
+export default async function handler(req, res) {
   // CORS headers
-  if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    })
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
   }
 
-  if (request.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { 
-        status: 405,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
+  // Only allow POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // Dohvati IP i geolokaciju
-    const clientIp = ipAddress(request) || 
-                     request.headers.get('x-forwarded-for') || 
-                     'unknown'
-    
-    const geo = geolocation(request)
-
-    // Parsiraj body
-    const body = await request.json()
-    const { email, password, name, surname } = body
+    const { email, password, name, surname } = req.body
 
     // Validacija
     if (!email || !password || !name || !surname) {
-      return new Response(
-        JSON.stringify({ error: 'Sva polja su obavezna' }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
+      return res.status(400).json({ error: 'Sva polja su obavezna' })
     }
 
-    // Dinamički import Supabase klijenta
-    const { createClient } = await import('@supabase/supabase-js')
-    
+    // Dohvati IP iz headers
+    const clientIp = req.headers['x-forwarded-for'] || 
+                     req.socket.remoteAddress || 
+                     'unknown'
+
+    // Dohvati geolokaciju iz Vercel headers
+    const geo = {
+      country: req.headers['x-vercel-ip-country'] || null,
+      city: req.headers['x-vercel-ip-city'] || null,
+      region: req.headers['x-vercel-ip-country-region'] || null,
+      latitude: req.headers['x-vercel-ip-latitude'] || null,
+      longitude: req.headers['x-vercel-ip-longitude'] || null
+    }
+
     // Proveri environment varijable
     const supabaseUrl = process.env.VITE_SUPABASE_URL
-    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseKey) {
       console.error('Missing Supabase environment variables')
-      return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
+      return res.status(500).json({ error: 'Server configuration error' })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Registracija sa Supabase
     const { data, error } = await supabase.auth.signUp({
@@ -80,12 +60,12 @@ export default async function handler(request) {
           full_name: `${name} ${surname}`,
           role: 'user',
           ip_address: clientIp,
-          ip_country: geo?.country || null,
-          ip_city: geo?.city || null,
-          ip_region: geo?.region || null,
-          ip_latitude: geo?.latitude || null,
-          ip_longitude: geo?.longitude || null,
-          user_agent: request.headers.get('user-agent') || null,
+          ip_country: geo.country,
+          ip_city: geo.city,
+          ip_region: geo.region,
+          ip_latitude: geo.latitude,
+          ip_longitude: geo.longitude,
+          user_agent: req.headers['user-agent'] || null,
           registered_at: new Date().toISOString()
         }
       }
@@ -93,34 +73,17 @@ export default async function handler(request) {
 
     if (error) {
       console.error('Supabase error:', error)
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
+      return res.status(400).json({ error: error.message })
     }
 
-    return new Response(
-      JSON.stringify({ 
-        success: true,
-        message: 'Registracija uspešna. Proverite email za potvrdu.'
-      }),
-      { 
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
+    // Uspešna registracija
+    return res.status(200).json({ 
+      success: true,
+      message: 'Registracija uspešna. Proverite email za potvrdu.'
+    })
 
   } catch (error) {
     console.error('Server error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal server error: ' + error.message }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
+    return res.status(500).json({ error: 'Internal server error: ' + error.message })
   }
 }

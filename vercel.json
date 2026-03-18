@@ -1,10 +1,5 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
-  ],
-  "functions": {
-    "api/register.js": {
-      "runtime": "edge"
-    }
-  }
+  ]
 }
