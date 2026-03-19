@@ -7,35 +7,26 @@ const supabase = createClient(
 )
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
-    // IP adresa korisnika (od Vercel‑a)
     const ip =
       req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
       req.socket?.remoteAddress ||
       null
 
-    // Geolokacija sa IPAPI (opciono)
-    let geoData = {}
-    if (ip) {
-      try {
-        const geoResponse = await fetch(`[ipapi.co](https://ipapi.co/${ip}/json/)`)
-        geoData = await geoResponse.json()
-      } catch (e) {
-        console.warn('Geolokacija nije pronađena:')
-      }
-    }
+    // Geo‑info direktno iz Vercel header‑a
+    const city = req.headers['x-vercel-ip-city'] || null
+    const country = req.headers['x-vercel-ip-country'] || null
+    const region = req.headers['x-vercel-ip-country-region'] || null
+    const lat = req.headers['x-vercel-ip-latitude'] || null
+    const lon = req.headers['x-vercel-ip-longitude'] || null
 
-    // Podaci koji dolaze iz frontenda
     const { name, surname, email, password } = req.body
     if (!email || !password || !name || !surname) {
       return res.status(400).json({ error: 'Nedostaju obavezna polja' })
     }
 
-    // Registracija korisnika u Supabase auth + metadata
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -45,24 +36,22 @@ export default async function handler(req, res) {
           surname,
           full_name: `${name} ${surname}`,
           role: 'user',
-          ip_address: ip || null,
-          ip_country: geoData.country_name || null,
-          ip_city: geoData.city || null,
-          registered_at: new Date().toISOString(),
-          user_agent: req.headers['user-agent']
+          ip_address: ip,
+          ip_city: city,
+          ip_country: country,
+          ip_region: region,
+          ip_latitude: lat,
+          ip_longitude: lon,
+          user_agent: req.headers['user-agent'],
+          registered_at: new Date().toISOString()
         }
       }
     })
 
     if (error) throw error
-
-    return res.status(200).json({
-      success: true,
-      message: 'Registracija uspešna. Proverite email za verifikaciju.',
-      data
-    })
+    return res.status(200).json({ success: true, message: 'Registracija uspešna' })
   } catch (error) {
-    console.error('Greška pri registraciji:', error)
+    console.error('Greška:', error)
     return res.status(400).json({ success: false, error: error.message })
   }
 }
