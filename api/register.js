@@ -6,6 +6,13 @@ const supabase = createClient(
 )
 
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      success: true,
+      message: 'Register API radi'
+    })
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
@@ -35,11 +42,8 @@ export default async function handler(req, res) {
       req.socket?.remoteAddress ||
       null
 
-    const city = req.headers['x-vercel-ip-city'] || null
     const country = req.headers['x-vercel-ip-country'] || null
-    const region = req.headers['x-vercel-ip-country-region'] || null
-    const latitude = req.headers['x-vercel-ip-latitude'] || null
-    const longitude = req.headers['x-vercel-ip-longitude'] || null
+    const detectedCity = req.headers['x-vercel-ip-city'] || null
     const timezone = req.headers['x-vercel-ip-timezone'] || null
     const userAgent = req.headers['user-agent'] || null
 
@@ -50,10 +54,7 @@ export default async function handler(req, res) {
       role: 'user',
       ip_address: ip,
       ip_country: country,
-      ip_city: city,
-      ip_region: region,
-      ip_latitude: latitude,
-      ip_longitude: longitude,
+      detected_city: detectedCity,
       ip_timezone: timezone,
       user_agent: userAgent,
       registered_at: new Date().toISOString()
@@ -71,6 +72,21 @@ export default async function handler(req, res) {
 
     if (error) {
       console.error('SUPABASE SIGNUP ERROR:', error)
+
+      if (error.code === 'over_email_send_rate_limit') {
+        return res.status(429).json({
+          success: false,
+          error: 'Previše pokušaja registracije u kratkom roku. Pokušajte ponovo malo kasnije.'
+        })
+      }
+
+      if (error.message?.includes('User already registered')) {
+        return res.status(400).json({
+          success: false,
+          error: 'Korisnik sa ovom email adresom već postoji.'
+        })
+      }
+
       return res.status(400).json({
         success: false,
         error: error.message || 'Greška pri registraciji'
