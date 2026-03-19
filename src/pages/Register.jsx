@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../supabase/client'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 export default function Register() {
@@ -15,36 +14,6 @@ export default function Register() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
 
-  // Dohvatanje IP adrese i geolokacije pri loading-u komponente
-  useEffect(() => {
-    fetchIpInfo()
-  }, [])
-
-  const fetchIpInfo = async () => {
-    try {
-      // Dohvati IP i geolokaciju (radi u pozadini, ne prikazujemo korisniku)
-      const ipResponse = await fetch('https://api.ipify.org?format=json')
-      const ipData = await ipResponse.json()
-      
-      // Dohvati geolokaciju za IP (besplatno do 1000 zahteva dnevno)
-      const geoResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`)
-      const geoData = await geoResponse.json()
-      
-      // Sačuvaj u localStorage ili state manager ako je potrebno za kasnije
-      // Ali ne prikazujemo korisniku
-      window.__userIpInfo = {
-        ip_address: ipData.ip,
-        ip_country: geoData.country_name || '',
-        ip_city: geoData.city || ''
-      }
-      
-      console.log('IP info detected for registration:', ipData.ip) // Samo za debug
-    } catch (err) {
-      console.error('Error fetching IP info:', err)
-      window.__userIpInfo = null
-    }
-  }
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -55,8 +24,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    
-    // Validacija
+
     if (formData.password !== formData.confirmPassword) {
       setError('Lozinke se ne poklapaju')
       return
@@ -70,54 +38,28 @@ export default function Register() {
     setLoading(true)
 
     try {
-      // Uzmi IP info koji smo sačuvali (ako postoji)
-      const ipInfo = window.__userIpInfo || {}
-      
-      console.log('Registration with IP:', ipInfo.ip_address || 'unknown')
-
-      // Pripremamo metadata sa IP adresom i geolokacijom
-      const metadata = {
-        name: formData.name,
-        surname: formData.surname,
-        full_name: `${formData.name} ${formData.surname}`,
-        role: 'user',
-        ip_address: ipInfo.ip_address || null,
-        ip_country: ipInfo.ip_country || null,
-        ip_city: ipInfo.ip_city || null,
-        registered_at: new Date().toISOString(),
-        user_agent: navigator.userAgent // Opciono: čuvamo i info o browseru
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: metadata
-        }
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          surname: formData.surname,
+          email: formData.email,
+          password: formData.password
+        })
       })
 
-      if (error) {
-        console.error('Registration error:', error)
-        
-        if (error.message.includes('User already registered')) {
-          throw new Error('Korisnik sa ovom email adresom već postoji.')
-        } else {
-          throw error
-        }
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Došlo je do greške prilikom registracije.')
       }
 
-      console.log('Registration successful:', data)
-
-      if (data?.user) {
-        setSuccess(true)
-        // Preusmeri na login nakon 3 sekunde
-        setTimeout(() => {
-          navigate('/login')
-        }, 3000)
-      }
+      setSuccess(true)
+      setTimeout(() => navigate('/login'), 3000)
     } catch (err) {
-      console.error('Registration error:', err)
-      setError(err.message || 'Došlo je do greške prilikom registracije')
+      console.error('Registracija greška:', err)
+      setError(err.message)
     } finally {
       setLoading(false)
     }
@@ -130,15 +72,15 @@ export default function Register() {
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
             <h2 className="text-2xl font-bold mb-2">Registracija uspešna!</h2>
             <p className="mb-4">
-              Molimo proverite vaš email (<span className="font-bold">{formData.email}</span>) 
-              i potvrdite vaš nalog.
+              Molimo proverite vaš email (
+              <span className="font-bold">{formData.email}</span>) i potvrdite vaš nalog.
             </p>
             <p className="text-sm text-green-600">
               Bićete preusmereni na stranicu za prijavu za nekoliko sekundi...
             </p>
           </div>
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
           >
             Idi na prijavu
@@ -167,7 +109,10 @@ export default function Register() {
           <div className="rounded-md shadow-sm space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Ime
                 </label>
                 <input
@@ -183,7 +128,10 @@ export default function Register() {
               </div>
 
               <div>
-                <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="surname"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Prezime
                 </label>
                 <input
@@ -200,7 +148,10 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email adresa
               </label>
               <input
@@ -217,7 +168,10 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Lozinka
               </label>
               <input
@@ -231,13 +185,14 @@ export default function Register() {
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Minimum 6 karaktera
-              </p>
+              <p className="mt-1 text-xs text-gray-500">Minimum 6 karaktera</p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Potvrdite lozinku
               </label>
               <input
@@ -259,8 +214,8 @@ export default function Register() {
               type="submit"
               disabled={loading}
               className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                loading 
-                  ? 'bg-blue-400 cursor-not-allowed' 
+                loading
+                  ? 'bg-blue-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
               }`}
             >
@@ -270,7 +225,10 @@ export default function Register() {
 
           <div className="text-center text-sm">
             <span className="text-gray-600">Već imate nalog?</span>{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link
+              to="/login"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               Prijavite se
             </Link>
           </div>

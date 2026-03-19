@@ -1,35 +1,42 @@
-import { supabase } from '../src/supabase/client'
-import { geolocation, ipAddress } from '@vercel/functions'
+// api/register.js
+import { createClient } from '@supabase/supabase-js'
 
-export const config = {
-  runtime: 'edge',
-  regions: ['iad1']
-}
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_ANON_KEY
+)
 
-export default async function handler(request) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-  }
-
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { headers, status: 204 })
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const clientIp = ipAddress(request) || request.headers.get('x-forwarded-for') || 'unknown'
-    const geo = geolocation(request) || {}
-    const body = await request.json()
-    const { email, password, name, surname } = body
+    // IP adresa korisnika (od Vercel‑a)
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+      req.socket?.remoteAddress ||
+      null
 
-    if (!email || !password || !name || !surname) {
-      return new Response(JSON.stringify({ error: 'Sva polja su obavezna' }), { headers, status: 400 })
+    // Geolokacija sa IPAPI (opciono)
+    let geoData = {}
+    if (ip) {
+      try {
+        const geoResponse = await fetch(`[ipapi.co](https://ipapi.co/${ip}/json/)`)
+        geoData = await geoResponse.json()
+      } catch (e) {
+        console.warn('Geolokacija nije pronađena:')
+      }
     }
 
-    // Registracija u Supabase sa svim meta-podacima
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    // Podaci koji dolaze iz frontenda
+    const { name, surname, email, password } = req.body
+    if (!email || !password || !name || !surname) {
+      return res.status(400).json({ error: 'Nedostaju obavezna polja' })
+    }
+
+    // Registracija korisnika u Supabase auth + metadata
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -38,24 +45,24 @@ export default async function handler(request) {
           surname,
           full_name: `${name} ${surname}`,
           role: 'user',
-          ip_address: clientIp,
-          ip_country: geo.country || null,
-          ip_city: geo.city || null,
-          ip_region: geo.region || null,
-          ip_latitude: geo.latitude?.toString() || null,
-          ip_longitude: geo.longitude?.toString() || null,
-          user_agent: request.headers.get('user-agent') || 'unknown',
+          ip_address: ip || null,
+          ip_country: geoData.country_name || null,
+          ip_city: geoData.city || null,
+          registered_at: new Date().toISOString(),
+          user_agent: req.headers['user-agent']
         }
       }
     })
 
-    if (signUpError) {
-      return new Response(JSON.stringify({ error: signUpError.message }), { headers, status: 400 })
-    }
+    if (error) throw error
 
-    return new Response(JSON.stringify({ success: true, user: data.user }), { headers, status: 200 })
-
-  } catch (err) {
-    return new Response(JSON.stringify({ error: 'Server Error', details: err.message }), { headers, status: 500 })
+    return res.status(200).json({
+      success: true,
+      message: 'Registracija uspešna. Proverite email za verifikaciju.',
+      data
+    })
+  } catch (error) {
+    console.error('Greška pri registraciji:', error)
+    return res.status(400).json({ success: false, error: error.message })
   }
 }
