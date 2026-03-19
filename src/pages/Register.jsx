@@ -40,7 +40,9 @@ export default function Register() {
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           name: formData.name,
           surname: formData.surname,
@@ -56,10 +58,13 @@ export default function Register() {
       }
 
       setSuccess(true)
-      setTimeout(() => navigate('/login'), 3000)
+
+      setTimeout(() => {
+        navigate('/login')
+      }, 3000)
     } catch (err) {
       console.error('Registracija greška:', err)
-      setError(err.message)
+      setError(err.message || 'Došlo je do greške prilikom registracije.')
     } finally {
       setLoading(false)
     }
@@ -72,13 +77,14 @@ export default function Register() {
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
             <h2 className="text-2xl font-bold mb-2">Registracija uspešna!</h2>
             <p className="mb-4">
-              Molimo proverite vaš email (
-              <span className="font-bold">{formData.email}</span>) i potvrdite vaš nalog.
+              Molimo proverite vaš email (<span className="font-bold">{formData.email}</span>) i
+              potvrdite vaš nalog.
             </p>
             <p className="text-sm text-green-600">
               Bićete preusmereni na stranicu za prijavu za nekoliko sekundi...
             </p>
           </div>
+
           <Link
             to="/login"
             className="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
@@ -109,10 +115,7 @@ export default function Register() {
           <div className="rounded-md shadow-sm space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                   Ime
                 </label>
                 <input
@@ -128,10 +131,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label
-                  htmlFor="surname"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+                <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-1">
                   Prezime
                 </label>
                 <input
@@ -148,10 +148,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email adresa
               </label>
               <input
@@ -168,10 +165,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Lozinka
               </label>
               <input
@@ -225,10 +219,7 @@ export default function Register() {
 
           <div className="text-center text-sm">
             <span className="text-gray-600">Već imate nalog?</span>{' '}
-            <Link
-              to="/login"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
               Prijavite se
             </Link>
           </div>
