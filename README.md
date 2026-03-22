@@ -40,14 +40,21 @@ npm run dev:all
 
 4. Opcije:
 
-# Samo frontend
+## Samo frontend
 
 ```bash
 npm run dev
 ```
 
-# Samo API
+## Samo API
 
 ```bash
 npm run dev:api
 ```
+
+## 📄 Licenca
+
+Ovaj projekat je **vlasnički softver**.  
+Sav kod, dizajn i dokumentacija su zaštićeni autorskim pravima autora.  
+Nije dozvoljeno kopiranje, distribucija, modifikacija ili korišćenje ovog projekta bez prethodne pisane dozvole autora.  
+Pogledajte datoteku [LICENSE](LICENSE) za detalje.
