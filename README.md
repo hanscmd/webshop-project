@@ -1,16 +1,53 @@
-# React + Vite
+# Webshop Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ovo je **React + Vite** projekat za webshop sa podrškom za backend preko **Vercel Functions** i bazom podataka preko **Supabase**.  
+Projekt je dizajniran kao SPA (Single Page Application) sa dinamičkim rutama za korisnike, admin, i inbox/support sistem.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🛠 Tehnologije
 
-## React Compiler
+- **Frontend:** React 19 + Vite 7  
+- **Routing:** React Router Dom 7  
+- **Backend:** Vercel Serverless Functions (`/api`)  
+- **Baza podataka:** Supabase  
+- **CSS:** TailwindCSS + PostCSS  
+- **Linting:** ESLint  
+- **Deploy:** Vercel  
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🚀 Instalacija i lokalni razvoj
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Kloniraj repo:
+
+```bash
+git clone https://github.com/hanscmd/webshop-project.git
+cd webshop-project
+```
+
+2. Instaliraj dependencies:
+
+```bash
+npm install
+```
+
+3. Pokreni lokalno frontend i API:
+
+```bash
+npm run dev:all
+```
+
+4. Opcije:
+
+# Samo frontend
+
+```bash
+npm run dev
+```
+
+# Samo API
+
+```bash
+npm run dev:api
+```

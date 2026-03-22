@@ -9,9 +9,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint .",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
