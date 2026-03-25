@@ -1,0 +1,411 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
+    <link rel="shortcut icon" href="favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Proodaja.rs" />
+    <link rel="manifest" href="favicon/site.webmanifest" />
+</head>
+<body>
+    <style>
+
+        body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+        background-color: #FFFFFF;
+        }
+
+        header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #1E3A8A;
+        }
+
+        .logo-container {
+        display: flex;
+        align-items: center;
+        }
+
+        .logo-container a {
+        color: aliceblue;
+        text-decoration: none;
+        font-size: 30px; 
+        }
+
+        .logo img {
+        width: 40px;
+        height: auto;
+        margin-right: 10px;
+        border-radius: 50%;
+        }
+
+        .search-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        }
+
+        .search-container.ok {
+        background-color: #009966;
+        border-radius: 20px;
+        }
+
+        .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        }
+
+        #search {
+        padding: 8px 35px 8px 15px; /* Dodajemo prostor za ikonu sa leve strane */
+        width: 400px;
+        border: 2px solid #009966;
+        border-radius: 20px;
+        background-color: white;
+        font-size: 16px;
+        max-width: 81%;
+        }
+
+        .search-icon, .clear-icon {
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        right: 35px; /* Pozicioniranje ikona sa desne strane */
+        }
+
+        .clear-icon {
+        display: none;
+        }
+
+        .icon {
+        display: flex;
+        width: 20px; /* Veličina ikona */
+        height: 20px;
+        justify-content: center;
+        align-items: center;
+        }
+
+        .search-icon {
+        right: 6px;
+        padding: 8px 2px 8px 2px;
+        background-color: #009966;
+        border-bottom-right-radius: 20px;
+        border-top-right-radius: 20px;
+        border: 1.2px solid #009966;
+        }
+
+        
+        #search:focus + .search-wrapper .clear-icon {
+        display: inline-block;
+        }
+
+        .auth-links {
+          display: flex;
+          flex-direction: row;
+        }
+
+
+        .auth-links a {
+        margin-left: 15px;
+        text-decoration: none;
+        color: #000000;
+        border: 1px solid #202a95;
+        padding: 8px;
+        border-radius: 20px;
+        background-color: rgb(218, 218, 218);
+        }
+
+        #registruj {
+        background-color: #009966;
+        color: white
+        }
+
+        /* Osnovni stil za oba linka - dodaj transition da efekat bude gladak */
+.auth-links a {
+  transition: all 0.3s ease; /* Ovo je ključ za glatku animaciju */
+  display: inline-block; /* Važno da bi transform radio pravilno */
+}
+
+/* Efekat pri prelasku mišem (Hover) */
+.auth-links a:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Suptilna senka */
+  filter: brightness(1.1); /* Blago prosvetli boju */
+}
+
+
+
+        
+
+        .additional-icons {
+        display: flex;
+        justify-content: flex-start; /* Poravnava ikone na levu stranu */
+        align-items: center;
+        margin-right: 4%;
+        } 
+
+        .additional-icons .ikon {
+        margin-left: 18px;
+        cursor: pointer;
+        width: 24px; /* ili bilo koja veličina koja odgovara */
+        height: 24px; /* isto kao gore */
+        }
+
+        /* Osnovni stil za ikone */
+.additional-icons .ikon {
+  padding: 8px; /* Prostor oko ikone koji će se obojiti */
+  border-radius: 5px; /* Blago zaobljeni uglovi pozadine, kao kod kategorija */
+  transition: background-color 0.3s ease; /* Gladak prelaz boje */
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* Hover efekat - identičan tvojim kategorijama */
+.additional-icons .ikon:hover {
+  background-color: #555; /* Tamno siva pozadina */
+  /* Ako su tvoje ikone crne, možda ćeš želeti da ih prosvetliš da se vide na tamno sivoj: */
+  filter: invert(1) brightness(2); 
+}
+
+        
+
+          /* Navbar Style */
+        .navbar {
+            background-color: #1a1919;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .dropdown-link {
+            display: flex;
+            align-items: center; /* Vertikalno centriranje */
+            justify-content: center; /* Horizontalno centriranje (ako je potrebno) */
+            position: relative; /* Omogućava pozicioniranje strelice unutar linka */
+        }
+
+        .sve-kategorije-icon {
+            width: 20px; /* Veličina ikone */
+            height: 20px; /* Visina ikone */
+            margin-right: 8px; /* Razmak između ikone i teksta */
+        }
+
+        /* Strelica sa desne strane */
+        .arrow-icon {
+            width: 15px;
+            height: 15px;
+            margin-left: 8px; /* Razmak između teksta i strelice */
+            transition: transform 0.3s ease; /* Animacija za rotaciju */
+        }
+
+        /* Efekat kada pređemo mišem */
+        .dropdown-link:hover .arrow-icon, .dropdown:hover .arrow-icon {
+            transform: rotate(180deg); /* Rotira strelicu za 180 stepeni */
+        }
+
+        /* Padajući meni */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: rgb(20, 15, 15);
+            min-width: 209.062px; 
+            z-index: 1;
+            border-bottom-right-radius: 25px;
+            border-bottom-left-radius: 25px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 12px;
+            border-radius: 25px;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-left: 20px;
+            background-color: rgb(20, 15, 15);
+            border-radius: 25px;
+            min-width: 209.062px;
+        }
+
+        .dropdown-content .category {
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 15px;
+        }
+
+        .subcategory {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .subcategory a {
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .subcategory a:hover {
+            background-color: #555;
+        }
+
+        a.category:hover {
+            background-color: #555;
+        }
+
+        .subcategory-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;  /* Razmak između ikone i teksta podkategorije */
+        }
+
+
+        .dropdown:hover {
+            border-bottom-right-radius: 0px;
+            border-bottom-left-radius: 0px;
+        }
+
+    </style>
+
+    <header>
+        <div class="logo-container">
+          <a href="http://www.google.com" class="logo">
+            <img src="./icon/0.png" alt="Logo"> <!-- Dodaj sliku loga ovde -->
+            <a href="http://www.google.com">Proodaja.rs</a>
+          </a>
+        </div>
+      
+        <div class="search-container">
+          <div class="search-container ok">
+            <div class="search-wrapper">
+              <input type="text" id="search" placeholder="Pretraga" />
+              <button class="search-icon" onclick="performSearch()">
+                <img src="./icon/search.svg" alt="Search Icon" class="icon"> <!-- Ikonica lupa -->
+              </button>
+              <button class="clear-icon" onclick="clearSearch()" style="display:none;">
+                <img src="./icon/close.svg" alt="Close Icon" class="icon"> <!-- Ikonica X -->
+              </button>
+            </div>
+          </div>
+          </div>
+          
+      
+        <div class="auth-links">
+          <a id="prijava" href="#">Prijavi se</a>
+          <a id="registruj" href="#">Registruj se</a>
+        </div>
+      
+        <div class="additional-icons">
+          <img src="./icon/heart-1.svg" alt="Svidjanja" class="ikon" /> <!-- Ikona korpe -->
+          <img src="./icon/bags.svg" alt="korpa" class="ikon" /> <!-- Ikona postavki -->
+          <img src="./icon/profile.svg" alt="profil" class="ikon" /> <!-- Ikona postavki -->
+        </div>
+      </header> 
+      
+      <!-- Navbar -->
+      <div class="navbar">
+        <div class="dropdown">
+            <a href="#" class="dropdown-link">
+                <img src="./icon/category.svg" alt="Kategorije Ikona" class="sve-kategorije-icon" />
+                Sve Kategorije
+                <img src="./icon/down.svg" alt="Strelica" class="arrow-icon" />
+            </a>
+            <div class="dropdown-content">
+                <div class="category">
+                    <span>Muškarci</span>
+                    <div class="subcategory">
+                        <a href="#">
+                            <img src="./icon/tshmen.svg" alt="Muškarci Ikona" class="subcategory-icon" />
+                            Odeća
+                        </a>
+                        <a href="#">
+                            <img src="./icon/menshoes.svg" alt="Muškarci Ikona" class="subcategory-icon" />
+                            Obuća
+                        </a>
+                    </div>
+                </div>
+                <div class="category">
+                    <span>Žene</span>
+                    <div class="subcategory">
+                        <a href="#">
+                            <img src="./icon/tshwomen.svg" alt="Žene Ikona" class="subcategory-icon" />
+                            Odeća
+                        </a>
+                        <a href="#">
+                            <img src="./icon/womenshoes.svg" alt="Žene Ikona" class="subcategory-icon" />
+                            Obuća
+                        </a>
+                    </div>
+                </div>
+                <div class="category">
+                    <span>Deca</span>
+                    <div class="subcategory">
+                        <a href="#">
+                            <img src="./icon/tshkids.svg" alt="Deca Ikona" class="subcategory-icon" />
+                            Odeća
+                        </a>
+                        <a href="#">
+                            <img src="./icon/childrenshoes.svg" alt="Deca Ikona" class="subcategory-icon" />
+                            Obuća
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <a href="#" class="category">Muškarci</a>
+            <a href="#" class="category">Žene</a>
+            <a href="#" class="category">Deca</a>
+            <a href="#" class="category">Aksesoari</a>
+        </div>
+     </div>
+
+
+       <script>
+        const searchInput = document.getElementById("search");
+        const searchIcon = document.querySelector(".search-icon");
+        const clearIcon = document.querySelector(".clear-icon");
+
+        searchInput.addEventListener("input", function () {
+        if (searchInput.value !== "") {
+            clearIcon.style.display = "inline-block"; // Prikazuje "X" ikonu kada postoji tekst
+        } else {
+            clearIcon.style.display = "none"; // Sakriva "X" ikonu kada nema teksta
+        }
+        });
+
+        function clearSearch() {
+        searchInput.value = "";
+        clearIcon.style.display = "none"; // Sakriva "X" ikonu nakon brisanja
+        }
+
+        function performSearch() {
+        // Ovdje ide logika za izvršenje pretrage
+        console.log("Pretraga: " + searchInput.value);
+        }
+       </script>
